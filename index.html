@@ -1,0 +1,428 @@
+<!doctype html>
+<html lang="nl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Carrosserie Bestek</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <div class="brand-block">
+          <p class="brand-kicker">Carrosserie</p>
+          <h1>Bestek calculatie</h1>
+        </div>
+        <div class="topbar-meta">
+          <span>Professionele schatting</span>
+          <strong>Werkplaats layout</strong>
+        </div>
+      </header>
+
+      <main class="estimate-layout">
+        <section class="panel">
+          <div class="section-title-row">
+            <h2>Dossier gegevens</h2>
+          </div>
+          <div class="info-sections">
+            <section class="info-card">
+              <div class="subsection-title">
+                <h3>Klant gegevens</h3>
+              </div>
+              <div class="form-grid form-grid-customer">
+                <label class="field">
+                  <span>Klant naam</span>
+                  <input id="customer-name" type="text" />
+                </label>
+                <label class="field field-span-2">
+                  <span>Adres</span>
+                  <input id="customer-address" type="text" />
+                </label>
+                <label class="field">
+                  <span>Telefoon</span>
+                  <input id="customer-phone" type="text" />
+                </label>
+                <label class="field">
+                  <span>Email</span>
+                  <input id="customer-email" type="email" />
+                </label>
+                <label class="field">
+                  <span>BTW nummer</span>
+                  <input id="customer-vat" type="text" />
+                </label>
+              </div>
+            </section>
+
+            <section class="info-card">
+              <div class="subsection-title">
+                <h3>Voertuig gegevens</h3>
+              </div>
+              <div class="form-grid form-grid-vehicle">
+                <label class="field">
+                  <span>Merk</span>
+                  <input id="vehicle-brand" type="text" />
+                </label>
+                <label class="field">
+                  <span>Model</span>
+                  <input id="vehicle-model" type="text" />
+                </label>
+                <label class="field">
+                  <span>Nummerplaat</span>
+                  <input id="vehicle-plate" type="text" />
+                </label>
+                <label class="field field-span-2">
+                  <span>Chassisnummer</span>
+                  <input id="vehicle-chassis" type="text" />
+                </label>
+                <label class="field">
+                  <span>Eerste inschrijving</span>
+                  <input id="vehicle-registration-date" type="date" />
+                </label>
+                <label class="field">
+                  <span>Kilometerstand</span>
+                  <input id="vehicle-mileage" type="number" min="0" step="1" />
+                </label>
+              </div>
+            </section>
+
+            <section class="info-card">
+              <div class="subsection-title">
+                <h3>Document gegevens</h3>
+              </div>
+              <div class="form-grid form-grid-document">
+                <label class="field">
+                  <span>Bestek nummer</span>
+                  <input id="document-number" type="text" />
+                </label>
+                <label class="field">
+                  <span>Datum</span>
+                  <input id="document-date" type="date" />
+                </label>
+                <label class="field">
+                  <span>Bedrijf naam</span>
+                  <input id="company-name" type="text" />
+                </label>
+                <label class="field">
+                  <span>Bedrijf BTW nummer</span>
+                  <input id="company-vat" type="text" />
+                </label>
+                <label class="field">
+                  <span>BTW (%)</span>
+                  <input id="vat-rate" type="number" min="0" step="0.01" value="21" />
+                </label>
+              </div>
+            </section>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="section-title-row">
+            <h2>Opmerkingen</h2>
+          </div>
+          <label class="field">
+            <span>Opmerkingen</span>
+            <textarea id="remarks" rows="4"></textarea>
+          </label>
+        </section>
+
+        <section class="panel">
+          <div class="section-title-row">
+            <h2>Instellingen</h2>
+          </div>
+
+          <div class="settings-columns">
+            <div class="settings-card">
+              <h3>Tarieven</h3>
+              <label class="checkbox-row">
+                <input id="insurer-rate-toggle" type="checkbox" />
+                <span>Uurloon verzekeraar</span>
+              </label>
+              <label class="field">
+                <span>Uurloon (EUR)</span>
+                <input id="rate-labor" type="number" min="0" step="0.01" value="65" />
+              </label>
+              <label class="field">
+                <span>Uurloon verf (EUR)</span>
+                <input id="rate-paint" type="number" min="0" step="0.01" value="65" />
+              </label>
+              <button id="recalculate-lines" class="button button-secondary" type="button">
+                Lijnen herberekenen
+              </button>
+            </div>
+
+            <div class="settings-card">
+              <h3>Genereer uit onderdelen</h3>
+              <label class="option-row">
+                <span class="option-main">
+                  <input id="small-materials-enabled" type="checkbox" checked />
+                  <span>Klein materiaal</span>
+                </span>
+                <div class="option-input with-meta">
+                  <input
+                    id="small-materials-value"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value="0"
+                    readonly
+                  />
+                  <small>Auto 1%</small>
+                </div>
+              </label>
+              <label class="option-row">
+                <span class="option-main">
+                  <input id="environment-enabled" type="checkbox" checked />
+                  <span>Milieu (%)</span>
+                </span>
+                <div class="option-input with-meta">
+                  <input
+                    id="environment-value"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value="0"
+                    readonly
+                  />
+                  <small>Auto 2%</small>
+                </div>
+              </label>
+            </div>
+
+            <div class="settings-card">
+              <h3>Genereer uit spuitwerk</h3>
+              <label class="option-row">
+                <span class="option-main">
+                  <input id="paint-materials-enabled" type="checkbox" checked />
+                  <span>Spuitproducten (60.5%)</span>
+                </span>
+                <div class="option-input with-meta">
+                  <input
+                    id="paint-materials-value"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value="0"
+                    readonly
+                  />
+                  <small>Auto</small>
+                </div>
+              </label>
+              <label class="option-row">
+                <span class="option-main">
+                  <input id="anti-rust-enabled" type="checkbox" />
+                  <span>Anti-roest</span>
+                </span>
+                <div class="option-input with-meta">
+                  <input id="anti-rust-value" type="number" min="0" step="0.01" value="15" />
+                  <small>Handmatig</small>
+                </div>
+              </label>
+            </div>
+          </div>
+        </section>
+
+        <section class="actionbar">
+          <button id="add-line" class="button button-primary" type="button">
+            Nieuw onderdeel toevoegen
+          </button>
+          <button id="build-estimate" class="button button-primary" type="button">
+            Maak bestek
+          </button>
+          <button id="print-estimate" class="button button-secondary" type="button">
+            Afdrukken
+          </button>
+        </section>
+
+        <section class="panel">
+          <div class="section-title-row with-summary">
+            <h2>Besteklijnen</h2>
+            <div class="summary-strip">
+              <div>
+                <span>Totaal arbeid</span>
+                <strong id="total-labor">EUR 0.00</strong>
+              </div>
+              <div>
+                <span>Totaal onderdelen</span>
+                <strong id="total-parts">EUR 0.00</strong>
+              </div>
+              <div class="summary-total">
+                <span>Totaal bestek</span>
+                <strong id="grand-total">EUR 0.00</strong>
+              </div>
+            </div>
+          </div>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Omschrijving</th>
+                  <th>AE demontage</th>
+                  <th>AE plaatwerk</th>
+                  <th>AE spuiten</th>
+                  <th>Onderdelen prijs</th>
+                  <th>Lijn totaal</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="line-items"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="panel totals-panel">
+          <div class="section-title-row">
+            <h2>Totalen</h2>
+          </div>
+          <div class="totals-grid">
+            <div class="total-box">
+              <span>Demontage</span>
+              <strong id="total-disassembly">EUR 0.00</strong>
+            </div>
+            <div class="total-box">
+              <span>Plaatwerk</span>
+              <strong id="total-bodywork">EUR 0.00</strong>
+            </div>
+            <div class="total-box">
+              <span>Spuiten</span>
+              <strong id="total-paint">EUR 0.00</strong>
+            </div>
+            <div class="total-box">
+              <span>Spuitproducten</span>
+              <strong id="total-paint-materials">EUR 0.00</strong>
+            </div>
+            <div class="total-box">
+              <span>Klein materiaal</span>
+              <strong id="total-small-materials">EUR 0.00</strong>
+            </div>
+            <div class="total-box">
+              <span>Milieu</span>
+              <strong id="total-environment">EUR 0.00</strong>
+            </div>
+            <div class="total-box">
+              <span>Anti-roest</span>
+              <strong id="total-anti-rust">EUR 0.00</strong>
+            </div>
+          </div>
+        </section>
+
+        <section id="estimate-output" class="panel hidden">
+          <div class="section-title-row">
+            <h2>Gegenereerd bestek</h2>
+          </div>
+          <div class="estimate-sheet">
+            <div class="estimate-header">
+              <div>
+                <p class="estimate-label">Offerte</p>
+                <h3 id="estimate-company-name">-</h3>
+                <p id="estimate-company-vat" class="estimate-meta-line">-</p>
+              </div>
+              <div class="estimate-docbox">
+                <div>
+                  <span>Bestek nr.</span>
+                  <strong id="estimate-document-number">-</strong>
+                </div>
+                <div>
+                  <span>Datum</span>
+                  <strong id="estimate-document-date">-</strong>
+                </div>
+                <div>
+                  <span>BTW</span>
+                  <strong id="estimate-vat-rate">21%</strong>
+                </div>
+              </div>
+            </div>
+
+            <div class="estimate-info-grid">
+              <section class="estimate-info-card">
+                <h3>Klant gegevens</h3>
+                <p id="estimate-customer-name">-</p>
+                <p id="estimate-customer-address">-</p>
+                <p id="estimate-customer-phone">-</p>
+                <p id="estimate-customer-email">-</p>
+                <p id="estimate-customer-vat">-</p>
+              </section>
+              <section class="estimate-info-card">
+                <h3>Voertuig gegevens</h3>
+                <p id="estimate-vehicle-brand-model">-</p>
+                <p id="estimate-vehicle-plate">-</p>
+                <p id="estimate-vehicle-chassis">-</p>
+                <p id="estimate-vehicle-registration-date">-</p>
+                <p id="estimate-vehicle-mileage">-</p>
+              </section>
+              <section class="estimate-info-card">
+                <h3>Opmerkingen</h3>
+                <p id="estimate-remarks">-</p>
+              </section>
+            </div>
+
+            <div class="table-wrap estimate-lines-wrap">
+              <table class="estimate-lines-table">
+                <thead>
+                  <tr>
+                    <th>Omschrijving</th>
+                    <th>AE demontage</th>
+                    <th>AE plaatwerk</th>
+                    <th>AE spuiten</th>
+                    <th>Onderdelen</th>
+                    <th>Totaal</th>
+                  </tr>
+                </thead>
+                <tbody id="estimate-lines-body"></tbody>
+              </table>
+            </div>
+
+            <div class="estimate-totals">
+              <div class="estimate-total-row">
+                <span>Subtotaal excl. BTW</span>
+                <strong id="estimate-subtotal">EUR 0.00</strong>
+              </div>
+              <div class="estimate-total-row">
+                <span>BTW bedrag</span>
+                <strong id="estimate-vat-amount">EUR 0.00</strong>
+              </div>
+              <div class="estimate-total-row grand">
+                <span>Totaal incl. BTW</span>
+                <strong id="estimate-total-incl-vat">EUR 0.00</strong>
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <template id="line-template">
+      <tr>
+        <td>
+          <input class="line-input description" type="text" />
+        </td>
+        <td>
+          <input class="line-input ae-disassembly" type="number" min="0" step="0.1" value="0" />
+        </td>
+        <td>
+          <input class="line-input ae-bodywork" type="number" min="0" step="0.1" value="0" />
+        </td>
+        <td>
+          <input class="line-input ae-paint" type="number" min="0" step="0.1" value="0" />
+        </td>
+        <td>
+          <input class="line-input parts-price" type="number" min="0" step="0.01" value="0" />
+        </td>
+        <td class="line-total">EUR 0.00</td>
+        <td>
+          <button class="icon-button remove-line" type="button" aria-label="Verwijder lijn">
+            x
+          </button>
+        </td>
+      </tr>
+    </template>
+
+    <script src="./app.js"></script>
+  </body>
+</html>
