@@ -14,18 +14,54 @@
   </head>
   <body>
     <div class="app-shell">
-      <header class="topbar">
-        <div class="brand-block">
-          <p class="brand-kicker">Carrosserie</p>
-          <h1>Bestek calculatie</h1>
-        </div>
-        <div class="topbar-meta">
-          <span>Professionele schatting</span>
-          <strong>Werkplaats layout</strong>
-        </div>
-      </header>
+      <section id="auth-panel" class="panel auth-panel">
+        <div class="auth-card">
+          <div class="auth-header">
+            <p class="brand-kicker">Carrosserie</p>
+            <h1>Inloggen</h1>
+            <p class="auth-copy">Meld je aan om de bestektool te gebruiken.</p>
+          </div>
 
-      <main class="estimate-layout">
+          <div class="auth-form">
+            <label class="field">
+              <span>Email</span>
+              <input id="auth-email" type="email" autocomplete="email" />
+            </label>
+            <label class="field">
+              <span>Wachtwoord</span>
+              <input id="auth-password" type="password" autocomplete="current-password" />
+            </label>
+            <div class="auth-actions">
+              <button id="login-button" class="button button-primary" type="button">Login</button>
+              <button id="register-button" class="button button-secondary" type="button">
+                Registreer
+              </button>
+              <button id="google-login-button" class="button button-secondary" type="button">
+                Login met Google
+              </button>
+            </div>
+            <p id="auth-status" class="auth-status">Niet ingelogd.</p>
+            <p id="auth-error" class="auth-error hidden" role="alert"></p>
+          </div>
+        </div>
+      </section>
+
+      <div id="app-content" class="hidden">
+        <header class="topbar">
+          <div class="brand-block">
+            <p class="brand-kicker">Carrosserie</p>
+            <h1>Bestek calculatie</h1>
+          </div>
+          <div class="topbar-meta">
+            <span id="user-email">Professionele schatting</span>
+            <strong>Werkplaats layout</strong>
+            <button id="logout-button" class="button button-secondary auth-logout hidden" type="button">
+              Logout
+            </button>
+          </div>
+        </header>
+
+        <main class="estimate-layout">
         <section class="panel">
           <div class="section-title-row">
             <h2>Dossier gegevens</h2>
@@ -394,7 +430,8 @@
             </div>
           </div>
         </section>
-      </main>
+        </main>
+      </div>
     </div>
 
     <template id="line-template">
@@ -423,6 +460,20 @@
       </tr>
     </template>
 
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+    <script>
+      const firebaseConfig = {
+        apiKey: "AIzaSyBQs5GmQAeuc1HGBu6ijrmJBeN0bUOgl8U",
+        authDomain: "xpertlink-calculatietool.firebaseapp.com",
+        projectId: "xpertlink-calculatietool",
+        storageBucket: "xpertlink-calculatietool.firebasestorage.app",
+        messagingSenderId: "381582276474",
+        appId: "1:381582276474:web:81d7fd850159a7c07988c3",
+      };
+
+      firebase.initializeApp(firebaseConfig);
+    </script>
     <script src="./app.js"></script>
   </body>
 </html>

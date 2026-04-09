@@ -10,6 +10,17 @@ const GENERATED_RATES = {
 };
 
 const elements = {
+  authPanel: document.getElementById("auth-panel"),
+  appContent: document.getElementById("app-content"),
+  authEmail: document.getElementById("auth-email"),
+  authPassword: document.getElementById("auth-password"),
+  loginButton: document.getElementById("login-button"),
+  registerButton: document.getElementById("register-button"),
+  googleLoginButton: document.getElementById("google-login-button"),
+  logoutButton: document.getElementById("logout-button"),
+  authStatus: document.getElementById("auth-status"),
+  authError: document.getElementById("auth-error"),
+  userEmail: document.getElementById("user-email"),
   addLine: document.getElementById("add-line"),
   buildEstimate: document.getElementById("build-estimate"),
   printEstimate: document.getElementById("print-estimate"),
@@ -76,6 +87,78 @@ const elements = {
   estimateVatAmount: document.getElementById("estimate-vat-amount"),
   estimateTotalInclVat: document.getElementById("estimate-total-incl-vat"),
 };
+
+function showAuthError(message) {
+  elements.authError.textContent = message;
+  elements.authError.classList.remove("hidden");
+}
+
+function clearAuthError() {
+  elements.authError.textContent = "";
+  elements.authError.classList.add("hidden");
+}
+
+function setAuthMode(isLoggedIn, user) {
+  elements.authPanel.classList.toggle("hidden", isLoggedIn);
+  elements.appContent.classList.toggle("hidden", !isLoggedIn);
+  elements.logoutButton.classList.toggle("hidden", !isLoggedIn);
+  elements.userEmail.textContent = isLoggedIn ? user?.email || "Aangemeld" : "Professionele schatting";
+  elements.authStatus.textContent = isLoggedIn
+    ? `Ingelogd als ${user?.email || "gebruiker"}.`
+    : "Niet ingelogd.";
+
+  if (!isLoggedIn) {
+    elements.authPassword.value = "";
+  }
+}
+
+async function handleAuthAction(action) {
+  clearAuthError();
+
+  try {
+    await action();
+  } catch (error) {
+    showAuthError(error?.message || "Authenticatie mislukt.");
+  }
+}
+
+function setupAuth() {
+  if (typeof firebase === "undefined" || typeof firebase.auth !== "function") {
+    showAuthError("Firebase Auth is niet beschikbaar. Controleer de configuratie.");
+    setAuthMode(false);
+    return;
+  }
+
+  const auth = firebase.auth();
+
+  elements.loginButton.addEventListener("click", () => {
+    const email = elements.authEmail.value.trim();
+    const password = elements.authPassword.value;
+
+    handleAuthAction(() => auth.signInWithEmailAndPassword(email, password));
+  });
+
+  elements.registerButton.addEventListener("click", () => {
+    const email = elements.authEmail.value.trim();
+    const password = elements.authPassword.value;
+
+    handleAuthAction(() => auth.createUserWithEmailAndPassword(email, password));
+  });
+
+  elements.googleLoginButton.addEventListener("click", () => {
+    const provider = new firebase.auth.GoogleAuthProvider();
+    handleAuthAction(() => auth.signInWithPopup(provider));
+  });
+
+  elements.logoutButton.addEventListener("click", () => {
+    handleAuthAction(() => auth.signOut());
+  });
+
+  auth.onAuthStateChanged((user) => {
+    clearAuthError();
+    setAuthMode(Boolean(user), user);
+  });
+}
 
 function toNumber(value) {
   const parsed = Number.parseFloat(value);
@@ -590,3 +673,4 @@ elements.lineItems.addEventListener("click", (event) => {
 });
 
 calculate();
+setupAuth();
