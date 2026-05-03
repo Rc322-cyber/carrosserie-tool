@@ -366,8 +366,9 @@
         }
 
         const currentUser = firebase.auth().currentUser || user;
+        const email = (currentUser.email || "").trim().toLowerCase();
 
-        if (currentUser.email === ADMIN_EMAIL) {
+        if (email === ADMIN_EMAIL) {
           setView("admin", currentUser);
           renderCompanies();
           return;
