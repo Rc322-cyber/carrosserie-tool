@@ -78,7 +78,6 @@ const elements = {
   aiRegistrationImage: document.getElementById("ai-registration-image"),
   aiReadVehicleData: document.getElementById("ai-read-vehicle-data"),
   aiRegistrationPreviewWrap: document.getElementById("ai-registration-preview-wrap"),
-  aiRegistrationPreview: document.getElementById("ai-registration-preview"),
   aiRegistrationLoading: document.getElementById("ai-registration-loading"),
   aiRegistrationStatus: document.getElementById("ai-registration-status"),
   documentNumber: document.getElementById("document-number"),
@@ -121,7 +120,7 @@ let companySettingsMessageTimeout = null;
 let companyLogoReadPromise = Promise.resolve();
 let linkedCompanyProfile = null;
 let activeGeneratedRates = { ...GENERATED_RATES };
-let aiRegistrationPreviewUrl = "";
+let aiRegistrationPreviewUrls = [];
 
 function getCompanySettingsStorageKey(userId) {
   return `companySettings_${userId}`;
@@ -373,35 +372,52 @@ function handleCompanyLogoUpload(file) {
 }
 
 function clearAiRegistrationPreview() {
-  if (aiRegistrationPreviewUrl) {
-    URL.revokeObjectURL(aiRegistrationPreviewUrl);
-    aiRegistrationPreviewUrl = "";
-  }
+  aiRegistrationPreviewUrls.forEach((url) => URL.revokeObjectURL(url));
+  aiRegistrationPreviewUrls = [];
 
-  elements.aiRegistrationPreview.removeAttribute("src");
+  elements.aiRegistrationPreviewWrap.replaceChildren();
   elements.aiRegistrationPreviewWrap.classList.add("hidden");
 }
 
-function handleAiRegistrationImageUpload(file) {
+function handleAiRegistrationImageUpload(files) {
   elements.aiRegistrationStatus.textContent = "";
   elements.aiRegistrationLoading.classList.add("hidden");
   clearAiRegistrationPreview();
 
-  if (!file) {
+  const selectedImages = Array.from(files || []);
+
+  if (selectedImages.length > 2) {
+    elements.aiRegistrationImage.value = "";
+    elements.aiRegistrationStatus.textContent = "Maximum 2 foto's toegestaan.";
     return;
   }
 
-  aiRegistrationPreviewUrl = URL.createObjectURL(file);
-  elements.aiRegistrationPreview.src = aiRegistrationPreviewUrl;
+  if (selectedImages.length === 0) {
+    return;
+  }
+
+  const fragment = document.createDocumentFragment();
+
+  selectedImages.forEach((file, index) => {
+    const previewUrl = URL.createObjectURL(file);
+    const image = document.createElement("img");
+    image.className = "ai-registration-preview";
+    image.src = previewUrl;
+    image.alt = `Preview inschrijvingsbewijs ${index + 1}`;
+    aiRegistrationPreviewUrls.push(previewUrl);
+    fragment.appendChild(image);
+  });
+
+  elements.aiRegistrationPreviewWrap.appendChild(fragment);
   elements.aiRegistrationPreviewWrap.classList.remove("hidden");
 }
 
 function handleAiReadVehicleData() {
-  const selectedImage = elements.aiRegistrationImage.files?.[0] || null;
+  const selectedImages = Array.from(elements.aiRegistrationImage.files || []);
   elements.aiRegistrationLoading.classList.add("hidden");
 
-  if (!selectedImage) {
-    elements.aiRegistrationStatus.textContent = "Upload eerst een foto.";
+  if (selectedImages.length === 0) {
+    elements.aiRegistrationStatus.textContent = "Upload eerst foto’s.";
     return;
   }
 
@@ -1015,7 +1031,7 @@ elements.settingsCompanyLogo.addEventListener("change", (event) => {
 elements.aiRegistrationImage.addEventListener("change", (event) => {
   const target = event.target;
   if (target instanceof HTMLInputElement) {
-    handleAiRegistrationImageUpload(target.files?.[0] || null);
+    handleAiRegistrationImageUpload(target.files);
   }
 });
 elements.aiReadVehicleData.addEventListener("click", handleAiReadVehicleData);
