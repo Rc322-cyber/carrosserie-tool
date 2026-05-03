@@ -13,7 +13,7 @@
     <link rel="stylesheet" href="./styles.css" />
     <style>
       .admin-shell {
-        width: min(1100px, calc(100% - 28px));
+        width: min(1220px, calc(100% - 28px));
         margin: 0 auto;
         padding: 20px 0 36px;
       }
@@ -25,7 +25,7 @@
 
       .admin-form-grid {
         display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-template-columns: repeat(3, minmax(0, 1fr));
         gap: 12px;
       }
 
@@ -33,8 +33,65 @@
         grid-column: span 2;
       }
 
+      .admin-form-grid .field-span-3 {
+        grid-column: span 3;
+      }
+
+      .admin-actions {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        margin-top: 16px;
+      }
+
+      .admin-actions-group {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+
+      .admin-logo-preview-wrap {
+        display: grid;
+        gap: 8px;
+      }
+
+      .admin-logo-preview {
+        display: block;
+        max-width: 220px;
+        max-height: 110px;
+        width: auto;
+        height: auto;
+        padding: 10px;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        background: var(--panel-subtle);
+        object-fit: contain;
+      }
+
+      .admin-logo-cell {
+        width: 88px;
+      }
+
+      .admin-logo-thumb {
+        display: block;
+        max-width: 68px;
+        max-height: 44px;
+        width: auto;
+        height: auto;
+        border-radius: 8px;
+        object-fit: contain;
+        background: var(--panel-subtle);
+      }
+
       .admin-table-actions {
-        width: 120px;
+        width: 176px;
+      }
+
+      .admin-row-actions {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
       }
 
       select {
@@ -62,13 +119,37 @@
         color: var(--danger);
       }
 
+      @media (max-width: 1100px) {
+        .admin-form-grid {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .admin-form-grid .field-span-3 {
+          grid-column: span 2;
+        }
+      }
+
       @media (max-width: 860px) {
         .admin-form-grid {
           grid-template-columns: 1fr;
         }
 
-        .admin-form-grid .field-span-2 {
+        .admin-form-grid .field-span-2,
+        .admin-form-grid .field-span-3 {
           grid-column: span 1;
+        }
+
+        .admin-actions {
+          flex-direction: column;
+          align-items: stretch;
+        }
+
+        .admin-actions-group {
+          width: 100%;
+        }
+
+        .admin-actions-group .button {
+          width: 100%;
         }
       }
 
@@ -113,6 +194,7 @@
             <div class="section-title-row">
               <h2>Bedrijven beheren</h2>
             </div>
+            <input id="editing-company-id" type="hidden" />
             <div class="admin-form-grid">
               <label class="field">
                 <span>Bedrijfsnaam</span>
@@ -123,6 +205,10 @@
                 <input id="company-contact" type="text" />
               </label>
               <label class="field">
+                <span>Gebruiker email</span>
+                <input id="company-user-email" type="email" />
+              </label>
+              <label class="field">
                 <span>Email</span>
                 <input id="company-email" type="email" />
               </label>
@@ -131,8 +217,64 @@
                 <input id="company-phone" type="text" />
               </label>
               <label class="field">
+                <span>Website</span>
+                <input id="company-website" type="text" />
+              </label>
+              <label class="field">
+                <span>Straat + nummer</span>
+                <input id="company-street" type="text" />
+              </label>
+              <label class="field">
+                <span>Postcode</span>
+                <input id="company-postal-code" type="text" />
+              </label>
+              <label class="field">
+                <span>Gemeente</span>
+                <input id="company-city" type="text" />
+              </label>
+              <label class="field">
+                <span>Land</span>
+                <input id="company-country" type="text" />
+              </label>
+              <label class="field">
                 <span>BTW nummer</span>
                 <input id="company-vat" type="text" />
+              </label>
+              <label class="field">
+                <span>Ondernemingsnummer</span>
+                <input id="company-enterprise-number" type="text" />
+              </label>
+              <label class="field">
+                <span>IBAN</span>
+                <input id="company-iban" type="text" />
+              </label>
+              <label class="field">
+                <span>BIC</span>
+                <input id="company-bic" type="text" />
+              </label>
+              <label class="field">
+                <span>Factuur/offerte prefix</span>
+                <input id="company-estimate-prefix" type="text" />
+              </label>
+              <label class="field">
+                <span>Standaard BTW percentage</span>
+                <input id="company-default-vat-rate" type="number" min="0" step="0.01" />
+              </label>
+              <label class="field">
+                <span>Standaard uurloon</span>
+                <input id="company-default-rate-labor" type="number" min="0" step="0.01" />
+              </label>
+              <label class="field">
+                <span>Standaard uurloon verf</span>
+                <input id="company-default-rate-paint" type="number" min="0" step="0.01" />
+              </label>
+              <label class="field">
+                <span>Klein materiaal %</span>
+                <input id="company-small-materials-percentage" type="number" min="0" step="0.01" />
+              </label>
+              <label class="field">
+                <span>Milieu %</span>
+                <input id="company-environment-percentage" type="number" min="0" step="0.01" />
               </label>
               <label class="field">
                 <span>Status</span>
@@ -142,14 +284,23 @@
                 </select>
               </label>
               <label class="field field-span-2">
-                <span>Notities</span>
-                <textarea id="company-notes" rows="4"></textarea>
+                <span>Logo upload</span>
+                <input id="company-logo" type="file" accept="image/*" />
               </label>
+              <div class="admin-logo-preview-wrap field field-span-3">
+                <span>Logo preview</span>
+                <img id="company-logo-preview" class="admin-logo-preview hidden" alt="Logo preview" />
+              </div>
             </div>
-            <div class="section-title-row">
-              <button id="save-company" class="button button-primary" type="button">
-                Bedrijf opslaan
-              </button>
+            <div class="admin-actions">
+              <div class="admin-actions-group">
+                <button id="save-company" class="button button-primary" type="button">
+                  Bedrijf opslaan
+                </button>
+                <button id="reset-company-form" class="button button-secondary" type="button">
+                  Formulier leegmaken
+                </button>
+              </div>
               <p id="save-feedback" class="admin-message hidden">Bedrijf opgeslagen.</p>
             </div>
           </section>
@@ -162,19 +313,17 @@
               <table>
                 <thead>
                   <tr>
+                    <th class="admin-logo-cell">Logo</th>
                     <th>Bedrijfsnaam</th>
-                    <th>Contactpersoon</th>
-                    <th>Email</th>
-                    <th>Telefoon</th>
+                    <th>Gebruiker email</th>
                     <th>BTW nummer</th>
                     <th>Status</th>
-                    <th>Notities</th>
                     <th class="admin-table-actions">Acties</th>
                   </tr>
                 </thead>
                 <tbody id="companies-body">
                   <tr>
-                    <td colspan="8" class="empty-estimate-row">Nog geen bedrijven opgeslagen.</td>
+                    <td colspan="6" class="empty-estimate-row">Nog geen bedrijven opgeslagen.</td>
                   </tr>
                 </tbody>
               </table>
@@ -206,25 +355,51 @@
         accessDenied: document.getElementById("access-denied"),
         adminDashboard: document.getElementById("admin-dashboard"),
         adminUserEmail: document.getElementById("admin-user-email"),
+        editingCompanyId: document.getElementById("editing-company-id"),
         companyName: document.getElementById("company-name"),
         companyContact: document.getElementById("company-contact"),
+        companyUserEmail: document.getElementById("company-user-email"),
         companyEmail: document.getElementById("company-email"),
         companyPhone: document.getElementById("company-phone"),
+        companyWebsite: document.getElementById("company-website"),
+        companyStreet: document.getElementById("company-street"),
+        companyPostalCode: document.getElementById("company-postal-code"),
+        companyCity: document.getElementById("company-city"),
+        companyCountry: document.getElementById("company-country"),
         companyVat: document.getElementById("company-vat"),
+        companyEnterpriseNumber: document.getElementById("company-enterprise-number"),
+        companyIban: document.getElementById("company-iban"),
+        companyBic: document.getElementById("company-bic"),
+        companyEstimatePrefix: document.getElementById("company-estimate-prefix"),
+        companyDefaultVatRate: document.getElementById("company-default-vat-rate"),
+        companyDefaultRateLabor: document.getElementById("company-default-rate-labor"),
+        companyDefaultRatePaint: document.getElementById("company-default-rate-paint"),
+        companySmallMaterialsPercentage: document.getElementById(
+          "company-small-materials-percentage"
+        ),
+        companyEnvironmentPercentage: document.getElementById("company-environment-percentage"),
         companyStatus: document.getElementById("company-status"),
-        companyNotes: document.getElementById("company-notes"),
+        companyLogo: document.getElementById("company-logo"),
+        companyLogoPreview: document.getElementById("company-logo-preview"),
         saveCompany: document.getElementById("save-company"),
+        resetCompanyForm: document.getElementById("reset-company-form"),
         saveFeedback: document.getElementById("save-feedback"),
         companiesBody: document.getElementById("companies-body"),
       };
 
       let feedbackTimeout = null;
+      let currentLogoDataUrl = "";
+      let logoReadPromise = Promise.resolve();
 
       function setView(state, user) {
         elements.loginRequired.classList.toggle("hidden", state !== "login-required");
         elements.accessDenied.classList.toggle("hidden", state !== "access-denied");
         elements.adminDashboard.classList.toggle("hidden", state !== "admin");
         elements.adminUserEmail.textContent = user?.email || "Admin controle";
+      }
+
+      function normalizeEmail(value) {
+        return String(value || "").trim().toLowerCase();
       }
 
       function loadCompanies() {
@@ -242,14 +417,75 @@
         window.localStorage.setItem(COMPANIES_STORAGE_KEY, JSON.stringify(companies));
       }
 
+      function setLogoPreview(logo) {
+        if (logo) {
+          elements.companyLogoPreview.src = logo;
+          elements.companyLogoPreview.classList.remove("hidden");
+          return;
+        }
+
+        elements.companyLogoPreview.removeAttribute("src");
+        elements.companyLogoPreview.classList.add("hidden");
+      }
+
       function clearForm() {
+        elements.editingCompanyId.value = "";
         elements.companyName.value = "";
         elements.companyContact.value = "";
+        elements.companyUserEmail.value = "";
         elements.companyEmail.value = "";
         elements.companyPhone.value = "";
+        elements.companyWebsite.value = "";
+        elements.companyStreet.value = "";
+        elements.companyPostalCode.value = "";
+        elements.companyCity.value = "";
+        elements.companyCountry.value = "";
         elements.companyVat.value = "";
+        elements.companyEnterpriseNumber.value = "";
+        elements.companyIban.value = "";
+        elements.companyBic.value = "";
+        elements.companyEstimatePrefix.value = "";
+        elements.companyDefaultVatRate.value = "";
+        elements.companyDefaultRateLabor.value = "";
+        elements.companyDefaultRatePaint.value = "";
+        elements.companySmallMaterialsPercentage.value = "";
+        elements.companyEnvironmentPercentage.value = "";
         elements.companyStatus.value = "actief";
-        elements.companyNotes.value = "";
+        elements.companyLogo.value = "";
+        currentLogoDataUrl = "";
+        logoReadPromise = Promise.resolve();
+        setLogoPreview("");
+        elements.saveCompany.textContent = "Bedrijf opslaan";
+      }
+
+      function populateForm(company) {
+        elements.editingCompanyId.value = company.id || "";
+        elements.companyName.value = company.name || "";
+        elements.companyContact.value = company.contact || "";
+        elements.companyUserEmail.value = company.userEmail || "";
+        elements.companyEmail.value = company.email || "";
+        elements.companyPhone.value = company.phone || "";
+        elements.companyWebsite.value = company.website || "";
+        elements.companyStreet.value = company.street || "";
+        elements.companyPostalCode.value = company.postalCode || "";
+        elements.companyCity.value = company.city || "";
+        elements.companyCountry.value = company.country || "";
+        elements.companyVat.value = company.vat || "";
+        elements.companyEnterpriseNumber.value = company.enterpriseNumber || "";
+        elements.companyIban.value = company.iban || "";
+        elements.companyBic.value = company.bic || "";
+        elements.companyEstimatePrefix.value = company.estimatePrefix || "";
+        elements.companyDefaultVatRate.value = company.defaultVatRate || "";
+        elements.companyDefaultRateLabor.value = company.defaultRateLabor || "";
+        elements.companyDefaultRatePaint.value = company.defaultRatePaint || "";
+        elements.companySmallMaterialsPercentage.value = company.smallMaterialsPercentage || "";
+        elements.companyEnvironmentPercentage.value = company.environmentPercentage || "";
+        elements.companyStatus.value = company.status || "actief";
+        elements.companyLogo.value = "";
+        currentLogoDataUrl = company.logo || "";
+        logoReadPromise = Promise.resolve();
+        setLogoPreview(currentLogoDataUrl);
+        elements.saveCompany.textContent = "Bedrijf bijwerken";
       }
 
       function showFeedback(message) {
@@ -281,6 +517,28 @@
         return `company_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
       }
 
+      function handleLogoUpload(file) {
+        if (!file) {
+          currentLogoDataUrl = "";
+          logoReadPromise = Promise.resolve();
+          setLogoPreview("");
+          return;
+        }
+
+        const reader = new FileReader();
+        logoReadPromise = new Promise((resolve, reject) => {
+          reader.onload = () => {
+            currentLogoDataUrl = typeof reader.result === "string" ? reader.result : "";
+            setLogoPreview(currentLogoDataUrl);
+            resolve(currentLogoDataUrl);
+          };
+          reader.onerror = () => {
+            reject(new Error("Logo uploaden mislukt."));
+          };
+        });
+        reader.readAsDataURL(file);
+      }
+
       function renderCompanies() {
         const companies = loadCompanies();
         elements.companiesBody.replaceChildren();
@@ -288,25 +546,38 @@
         if (companies.length === 0) {
           const row = document.createElement("tr");
           row.innerHTML =
-            '<td colspan="8" class="empty-estimate-row">Nog geen bedrijven opgeslagen.</td>';
+            '<td colspan="6" class="empty-estimate-row">Nog geen bedrijven opgeslagen.</td>';
           elements.companiesBody.appendChild(row);
           return;
         }
 
         companies.forEach((company) => {
           const row = document.createElement("tr");
+          const logoMarkup = company.logo
+            ? `<img class="admin-logo-thumb" src="${escapeHtml(company.logo)}" alt="Logo ${escapeHtml(
+                company.name || ""
+              )}" />`
+            : "-";
+
           row.innerHTML = `
+            <td class="admin-logo-cell">${logoMarkup}</td>
             <td>${escapeHtml(company.name || "-")}</td>
-            <td>${escapeHtml(company.contact || "-")}</td>
-            <td>${escapeHtml(company.email || "-")}</td>
-            <td>${escapeHtml(company.phone || "-")}</td>
+            <td>${escapeHtml(company.userEmail || "-")}</td>
             <td>${escapeHtml(company.vat || "-")}</td>
             <td>${escapeHtml(company.status || "-")}</td>
-            <td>${escapeHtml(company.notes || "-")}</td>
             <td>
-              <button class="button button-secondary delete-company" type="button" data-id="${escapeHtml(company.id)}">
-                Verwijderen
-              </button>
+              <div class="admin-row-actions">
+                <button class="button button-secondary edit-company" type="button" data-id="${escapeHtml(
+                  company.id
+                )}">
+                  Bewerken
+                </button>
+                <button class="button button-secondary delete-company" type="button" data-id="${escapeHtml(
+                  company.id
+                )}">
+                  Verwijderen
+                </button>
+              </div>
             </td>
           `;
           elements.companiesBody.appendChild(row);
@@ -314,38 +585,94 @@
       }
 
       function createCompanyPayload() {
+        const editingId = elements.editingCompanyId.value.trim();
+
         return {
-          id: createCompanyId(),
+          id: editingId || createCompanyId(),
           name: elements.companyName.value.trim(),
           contact: elements.companyContact.value.trim(),
+          userEmail: normalizeEmail(elements.companyUserEmail.value),
           email: elements.companyEmail.value.trim(),
           phone: elements.companyPhone.value.trim(),
+          website: elements.companyWebsite.value.trim(),
+          street: elements.companyStreet.value.trim(),
+          postalCode: elements.companyPostalCode.value.trim(),
+          city: elements.companyCity.value.trim(),
+          country: elements.companyCountry.value.trim(),
           vat: elements.companyVat.value.trim(),
+          enterpriseNumber: elements.companyEnterpriseNumber.value.trim(),
+          iban: elements.companyIban.value.trim(),
+          bic: elements.companyBic.value.trim(),
+          estimatePrefix: elements.companyEstimatePrefix.value.trim(),
+          defaultVatRate: elements.companyDefaultVatRate.value.trim(),
+          defaultRateLabor: elements.companyDefaultRateLabor.value.trim(),
+          defaultRatePaint: elements.companyDefaultRatePaint.value.trim(),
+          smallMaterialsPercentage: elements.companySmallMaterialsPercentage.value.trim(),
+          environmentPercentage: elements.companyEnvironmentPercentage.value.trim(),
           status: elements.companyStatus.value,
-          notes: elements.companyNotes.value.trim(),
+          logo: currentLogoDataUrl,
         };
       }
 
-      function handleSaveCompany() {
-        const companies = loadCompanies();
-        companies.push(createCompanyPayload());
-        saveCompanies(companies);
-        clearForm();
-        renderCompanies();
-        showFeedback("Bedrijf opgeslagen.");
+      async function handleSaveCompany() {
+        try {
+          await logoReadPromise;
+          const payload = createCompanyPayload();
+          const companies = loadCompanies();
+          const existingIndex = companies.findIndex((company) => company.id === payload.id);
+
+          if (existingIndex >= 0) {
+            companies[existingIndex] = payload;
+          } else {
+            companies.push(payload);
+          }
+
+          saveCompanies(companies);
+          clearForm();
+          renderCompanies();
+          showFeedback(existingIndex >= 0 ? "Bedrijf bijgewerkt." : "Bedrijf opgeslagen.");
+        } catch (error) {
+          console.error("Kon bedrijf niet opslaan.", error);
+        }
+      }
+
+      function handleEditCompany(companyId) {
+        const company = loadCompanies().find((entry) => entry.id === companyId);
+        if (!company) {
+          return;
+        }
+
+        populateForm(company);
       }
 
       function handleDeleteCompany(companyId) {
         const companies = loadCompanies().filter((company) => company.id !== companyId);
         saveCompanies(companies);
+
+        if (elements.editingCompanyId.value === companyId) {
+          clearForm();
+        }
+
         renderCompanies();
       }
 
+      elements.companyLogo.addEventListener("change", (event) => {
+        const target = event.target;
+        if (target instanceof HTMLInputElement) {
+          handleLogoUpload(target.files?.[0] || null);
+        }
+      });
+
       elements.saveCompany.addEventListener("click", handleSaveCompany);
+      elements.resetCompanyForm.addEventListener("click", clearForm);
       elements.companiesBody.addEventListener("click", (event) => {
         const target = event.target;
         if (!(target instanceof HTMLElement)) {
           return;
+        }
+
+        if (target.classList.contains("edit-company")) {
+          handleEditCompany(target.dataset.id || "");
         }
 
         if (target.classList.contains("delete-company")) {

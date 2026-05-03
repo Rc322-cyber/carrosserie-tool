@@ -40,6 +40,25 @@
         </div>
       </section>
 
+      <section id="blocked-panel" class="panel auth-panel hidden">
+        <div class="auth-card">
+          <div class="auth-header">
+            <p class="brand-kicker">Carrosserie</p>
+            <h1>Toegang geblokkeerd</h1>
+            <p id="blocked-message" class="auth-copy">
+              Uw toegang is geblokkeerd. Contacteer XpertLink.
+            </p>
+          </div>
+          <button
+            id="blocked-logout-button"
+            class="button button-secondary auth-logout"
+            type="button"
+          >
+            Logout
+          </button>
+        </div>
+      </section>
+
       <div id="app-content" class="hidden">
         <header class="topbar">
           <div class="brand-block">
@@ -242,7 +261,7 @@
                     value="0"
                     readonly
                   />
-                  <small>Auto 1%</small>
+                  <small id="small-materials-meta">Auto 1%</small>
                 </div>
               </label>
               <label class="option-row">
@@ -259,7 +278,7 @@
                     value="0"
                     readonly
                   />
-                  <small>Auto 2%</small>
+                  <small id="environment-meta">Auto 2%</small>
                 </div>
               </label>
             </div>
@@ -396,6 +415,8 @@
                 <p id="estimate-company-vat" class="estimate-meta-line">-</p>
                 <p id="estimate-company-phone" class="estimate-meta-line">-</p>
                 <p id="estimate-company-email" class="estimate-meta-line">-</p>
+                <p id="estimate-company-website" class="estimate-meta-line hidden">-</p>
+                <p id="estimate-company-iban-bic" class="estimate-meta-line hidden">-</p>
               </div>
               <div class="estimate-docbox">
                 <div>

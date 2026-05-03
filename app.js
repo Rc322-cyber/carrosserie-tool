@@ -9,8 +9,13 @@ const GENERATED_RATES = {
   environment: 0.02,
 };
 
+const COMPANIES_STORAGE_KEY = "xpertlink_companies";
+
 const elements = {
   authPanel: document.getElementById("auth-panel"),
+  blockedPanel: document.getElementById("blocked-panel"),
+  blockedMessage: document.getElementById("blocked-message"),
+  blockedLogoutButton: document.getElementById("blocked-logout-button"),
   appContent: document.getElementById("app-content"),
   authEmail: document.getElementById("auth-email"),
   authPassword: document.getElementById("auth-password"),
@@ -35,7 +40,9 @@ const elements = {
   paintMaterialsEnabled: document.getElementById("paint-materials-enabled"),
   antiRustEnabled: document.getElementById("anti-rust-enabled"),
   smallMaterialsValue: document.getElementById("small-materials-value"),
+  smallMaterialsMeta: document.getElementById("small-materials-meta"),
   environmentValue: document.getElementById("environment-value"),
+  environmentMeta: document.getElementById("environment-meta"),
   paintMaterialsValue: document.getElementById("paint-materials-value"),
   antiRustValue: document.getElementById("anti-rust-value"),
   totalDisassembly: document.getElementById("total-disassembly"),
@@ -80,6 +87,8 @@ const elements = {
   estimateCompanyVat: document.getElementById("estimate-company-vat"),
   estimateCompanyPhone: document.getElementById("estimate-company-phone"),
   estimateCompanyEmail: document.getElementById("estimate-company-email"),
+  estimateCompanyWebsite: document.getElementById("estimate-company-website"),
+  estimateCompanyIbanBic: document.getElementById("estimate-company-iban-bic"),
   estimateDocumentNumber: document.getElementById("estimate-document-number"),
   estimateDocumentDate: document.getElementById("estimate-document-date"),
   estimateVatRate: document.getElementById("estimate-vat-rate"),
@@ -104,9 +113,102 @@ let currentUser = null;
 let companyLogoDataUrl = "";
 let companySettingsMessageTimeout = null;
 let companyLogoReadPromise = Promise.resolve();
+let linkedCompanyProfile = null;
+let activeGeneratedRates = { ...GENERATED_RATES };
 
 function getCompanySettingsStorageKey(userId) {
   return `companySettings_${userId}`;
+}
+
+function normalizeEmail(value) {
+  return String(value || "").trim().toLowerCase();
+}
+
+function loadCompaniesFromStorage() {
+  try {
+    const rawCompanies = window.localStorage.getItem(COMPANIES_STORAGE_KEY);
+    const companies = rawCompanies ? JSON.parse(rawCompanies) : [];
+    return Array.isArray(companies) ? companies : [];
+  } catch (error) {
+    console.error("Kon bedrijven niet laden.", error);
+    return [];
+  }
+}
+
+function formatPercentageLabel(value) {
+  const numericValue = Number(value);
+  return Number.isInteger(numericValue) ? String(numericValue) : numericValue.toFixed(2);
+}
+
+function updateGeneratedRateLabels() {
+  elements.smallMaterialsMeta.textContent = `Auto ${formatPercentageLabel(
+    activeGeneratedRates.smallMaterials * 100
+  )}%`;
+  elements.environmentMeta.textContent = `Auto ${formatPercentageLabel(
+    activeGeneratedRates.environment * 100
+  )}%`;
+}
+
+function formatCompanyAddressFromProfile(profile = {}) {
+  const locality = [profile.postalCode, profile.city].filter(Boolean).join(" ");
+  return [profile.street, locality, profile.country].filter(Boolean).join(", ");
+}
+
+function formatCompanyIbanBic(profile = {}) {
+  const parts = [];
+
+  if (profile.iban) {
+    parts.push(`IBAN: ${profile.iban}`);
+  }
+
+  if (profile.bic) {
+    parts.push(`BIC: ${profile.bic}`);
+  }
+
+  return parts.join(" | ");
+}
+
+function toggleOptionalEstimateLine(element, text) {
+  const hasText = Boolean(text?.trim());
+  element.textContent = hasText ? text : "";
+  element.classList.toggle("hidden", !hasText);
+}
+
+function createDocumentNumberFromPrefix(prefix) {
+  const trimmedPrefix = prefix?.trim();
+  if (!trimmedPrefix) {
+    return "";
+  }
+
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const day = String(now.getDate()).padStart(2, "0");
+  return `${trimmedPrefix}-${year}${month}${day}`;
+}
+
+function setBlockedState(isBlocked, message = "") {
+  elements.blockedPanel.classList.toggle("hidden", !isBlocked);
+
+  if (isBlocked) {
+    elements.authPanel.classList.add("hidden");
+    elements.appContent.classList.add("hidden");
+    elements.blockedMessage.textContent = message;
+  }
+}
+
+function getLinkedCompanyProfile(userEmail) {
+  const normalizedEmail = normalizeEmail(userEmail);
+
+  if (!normalizedEmail) {
+    return null;
+  }
+
+  return (
+    loadCompaniesFromStorage().find(
+      (company) => normalizeEmail(company.userEmail) === normalizedEmail
+    ) || null
+  );
 }
 
 function hideCompanySettingsSuccess() {
@@ -145,19 +247,62 @@ function applyCompanySettingsToForm(settings = {}) {
   elements.settingsCompanyEmail.value = settings.email || "";
   elements.settingsCompanyLogo.value = "";
   companyLogoDataUrl = settings.logo || "";
-
-  if (settings.name) {
-    elements.companyName.value = settings.name;
-  }
-
-  if (settings.vat) {
-    elements.companyVat.value = settings.vat;
-  }
+  elements.companyName.value = settings.name || "";
+  elements.companyVat.value = settings.vat || "";
 }
 
 function resetCompanySettingsForm() {
   applyCompanySettingsToForm();
   hideCompanySettingsSuccess();
+}
+
+function applyLinkedCompanyProfileToCalculator(profile) {
+  linkedCompanyProfile = profile || null;
+
+  if (!profile) {
+    activeGeneratedRates = { ...GENERATED_RATES };
+    updateGeneratedRateLabels();
+    return;
+  }
+
+  const companySettings = {
+    name: profile.name || "",
+    address: formatCompanyAddressFromProfile(profile),
+    vat: profile.vat || "",
+    phone: profile.phone || "",
+    email: profile.email || "",
+    logo: profile.logo || "",
+  };
+
+  applyCompanySettingsToForm(companySettings);
+
+  if (profile.defaultRateLabor?.trim()) {
+    elements.rateLabor.value = profile.defaultRateLabor;
+  }
+
+  if (profile.defaultRatePaint?.trim()) {
+    elements.ratePaint.value = profile.defaultRatePaint;
+  }
+
+  if (profile.defaultVatRate?.trim()) {
+    elements.vatRate.value = profile.defaultVatRate;
+  }
+
+  activeGeneratedRates = {
+    paintMaterials: GENERATED_RATES.paintMaterials,
+    smallMaterials: profile.smallMaterialsPercentage?.trim()
+      ? toNumber(profile.smallMaterialsPercentage) / 100
+      : GENERATED_RATES.smallMaterials,
+    environment: profile.environmentPercentage?.trim()
+      ? toNumber(profile.environmentPercentage) / 100
+      : GENERATED_RATES.environment,
+  };
+
+  updateGeneratedRateLabels();
+
+  if (profile.estimatePrefix?.trim() && !elements.documentNumber.value.trim()) {
+    elements.documentNumber.value = createDocumentNumberFromPrefix(profile.estimatePrefix);
+  }
 }
 
 function loadCompanySettings(user) {
@@ -234,6 +379,7 @@ function setAuthMode(isLoggedIn, user) {
   elements.authPanel.classList.toggle("hidden", isLoggedIn);
   elements.appContent.classList.toggle("hidden", !isLoggedIn);
   elements.logoutButton.classList.toggle("hidden", !isLoggedIn);
+  elements.blockedPanel.classList.add("hidden");
   elements.userEmail.textContent = isLoggedIn ? user?.email || "Aangemeld" : "Professionele schatting";
   elements.authStatus.textContent = isLoggedIn
     ? `Ingelogd als ${user?.email || "gebruiker"}.`
@@ -290,11 +436,41 @@ function setupAuth() {
     handleAuthAction(() => auth.signOut());
   });
 
-  auth.onAuthStateChanged((user) => {
+  elements.blockedLogoutButton.addEventListener("click", () => {
+    handleAuthAction(() => auth.signOut());
+  });
+
+  auth.onAuthStateChanged(async (user) => {
     clearAuthError();
     currentUser = user || null;
     setAuthMode(Boolean(user), user);
     loadCompanySettings(user);
+
+    if (!user) {
+      linkedCompanyProfile = null;
+      activeGeneratedRates = { ...GENERATED_RATES };
+      updateGeneratedRateLabels();
+      return;
+    }
+
+    try {
+      await user.reload();
+    } catch (error) {
+      console.error("Kon gebruiker niet verversen.", error);
+    }
+
+    const resolvedUser = auth.currentUser || user;
+    const companyProfile = getLinkedCompanyProfile(resolvedUser.email);
+
+    if (String(companyProfile?.status || "").trim().toLowerCase() === "geblokkeerd") {
+      linkedCompanyProfile = companyProfile;
+      setBlockedState(true, "Uw toegang is geblokkeerd. Contacteer XpertLink.");
+      return;
+    }
+
+    setBlockedState(false);
+    applyLinkedCompanyProfileToCalculator(companyProfile);
+    calculate();
   });
 }
 
@@ -392,9 +568,9 @@ function getCalculationSnapshot() {
   });
 
   const totalLabor = laborDisassembly + laborBodywork + laborPaint;
-  const generatedPaintMaterials = laborPaint * GENERATED_RATES.paintMaterials;
-  const generatedSmallMaterials = totalParts * GENERATED_RATES.smallMaterials;
-  const generatedEnvironment = totalParts * GENERATED_RATES.environment;
+  const generatedPaintMaterials = laborPaint * activeGeneratedRates.paintMaterials;
+  const generatedSmallMaterials = totalParts * activeGeneratedRates.smallMaterials;
+  const generatedEnvironment = totalParts * activeGeneratedRates.environment;
 
   const paintMaterials = elements.paintMaterialsEnabled.checked ? generatedPaintMaterials : 0;
   const smallMaterials = elements.smallMaterialsEnabled.checked ? generatedSmallMaterials : 0;
@@ -463,16 +639,29 @@ function generateEstimate() {
   const snapshot = getCalculationSnapshot();
   const fragment = document.createDocumentFragment();
   const companySettings = getCompanySettingsFromForm();
+  const companyProfile = linkedCompanyProfile;
+  const companyAddress =
+    companySettings.address || formatCompanyAddressFromProfile(companyProfile || {});
+  const companyWebsite = companyProfile?.website?.trim() || "";
+  const companyIbanBic = formatCompanyIbanBic(companyProfile || {});
 
   elements.estimateCompanyName.textContent = formatText(
     companySettings.name || elements.companyName.value
   );
-  elements.estimateCompanyAddress.textContent = formatText(companySettings.address, "");
+  elements.estimateCompanyAddress.textContent = formatText(companyAddress, "");
   elements.estimateCompanyVat.textContent = `BTW: ${formatText(
     companySettings.vat || elements.companyVat.value
   )}`;
   elements.estimateCompanyPhone.textContent = `Tel: ${formatText(companySettings.phone, "")}`;
   elements.estimateCompanyEmail.textContent = `Email: ${formatText(companySettings.email, "")}`;
+  toggleOptionalEstimateLine(
+    elements.estimateCompanyWebsite,
+    companyWebsite ? `Website: ${companyWebsite}` : ""
+  );
+  toggleOptionalEstimateLine(
+    elements.estimateCompanyIbanBic,
+    companyIbanBic
+  );
   elements.estimateDocumentNumber.textContent = formatText(elements.documentNumber.value);
   elements.estimateDocumentDate.textContent = formatDate(elements.documentDate.value);
   elements.estimateVatRate.textContent = `${toNumber(elements.vatRate.value).toFixed(2)}%`;
@@ -848,5 +1037,6 @@ elements.lineItems.addEventListener("click", (event) => {
   input.addEventListener("change", calculate);
 });
 
+updateGeneratedRateLabels();
 calculate();
 setupAuth();
