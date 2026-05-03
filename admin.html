@@ -1,0 +1,372 @@
+<!doctype html>
+<html lang="nl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>XpertLink Admin</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+    <style>
+      .admin-shell {
+        width: min(1100px, calc(100% - 28px));
+        margin: 0 auto;
+        padding: 20px 0 36px;
+      }
+
+      .admin-layout {
+        display: grid;
+        gap: 16px;
+      }
+
+      .admin-form-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+      }
+
+      .admin-form-grid .field-span-2 {
+        grid-column: span 2;
+      }
+
+      .admin-table-actions {
+        width: 120px;
+      }
+
+      select {
+        width: 100%;
+        border: 1px solid var(--border-strong);
+        background: #fff;
+        border-radius: 10px;
+        padding: 11px 12px;
+        color: var(--text);
+        transition: border-color 120ms ease, box-shadow 120ms ease;
+      }
+
+      select:focus {
+        outline: none;
+        border-color: rgba(36, 116, 229, 0.65);
+        box-shadow: 0 0 0 3px rgba(36, 116, 229, 0.12);
+      }
+
+      .admin-message {
+        color: var(--muted);
+        line-height: 1.5;
+      }
+
+      .admin-message.error {
+        color: var(--danger);
+      }
+
+      @media (max-width: 860px) {
+        .admin-form-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .admin-form-grid .field-span-2 {
+          grid-column: span 1;
+        }
+      }
+
+      @media (max-width: 640px) {
+        .admin-shell {
+          width: calc(100% - 16px);
+          padding: 12px 0 24px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="admin-shell">
+      <header class="topbar">
+        <div class="brand-block">
+          <p class="brand-kicker">XpertLink</p>
+          <h1>XpertLink Admin</h1>
+        </div>
+        <div class="topbar-meta">
+          <span id="admin-user-email">Admin controle</span>
+          <strong>Bedrijven beheren</strong>
+        </div>
+      </header>
+
+      <main class="admin-layout">
+        <section id="login-required" class="panel hidden">
+          <div class="section-title-row">
+            <h2>Login vereist</h2>
+          </div>
+          <p class="admin-message">Je moet ingelogd zijn om deze pagina te openen.</p>
+        </section>
+
+        <section id="access-denied" class="panel hidden">
+          <div class="section-title-row">
+            <h2>Geen toegang</h2>
+          </div>
+          <p class="admin-message error">Geen toegang</p>
+        </section>
+
+        <section id="admin-dashboard" class="hidden">
+          <section class="panel">
+            <div class="section-title-row">
+              <h2>Bedrijven beheren</h2>
+            </div>
+            <div class="admin-form-grid">
+              <label class="field">
+                <span>Bedrijfsnaam</span>
+                <input id="company-name" type="text" />
+              </label>
+              <label class="field">
+                <span>Contactpersoon</span>
+                <input id="company-contact" type="text" />
+              </label>
+              <label class="field">
+                <span>Email</span>
+                <input id="company-email" type="email" />
+              </label>
+              <label class="field">
+                <span>Telefoon</span>
+                <input id="company-phone" type="text" />
+              </label>
+              <label class="field">
+                <span>BTW nummer</span>
+                <input id="company-vat" type="text" />
+              </label>
+              <label class="field">
+                <span>Status</span>
+                <select id="company-status">
+                  <option value="actief">actief</option>
+                  <option value="geblokkeerd">geblokkeerd</option>
+                </select>
+              </label>
+              <label class="field field-span-2">
+                <span>Notities</span>
+                <textarea id="company-notes" rows="4"></textarea>
+              </label>
+            </div>
+            <div class="section-title-row">
+              <button id="save-company" class="button button-primary" type="button">
+                Bedrijf opslaan
+              </button>
+              <p id="save-feedback" class="admin-message hidden">Bedrijf opgeslagen.</p>
+            </div>
+          </section>
+
+          <section class="panel">
+            <div class="section-title-row">
+              <h2>Opgeslagen bedrijven</h2>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Bedrijfsnaam</th>
+                    <th>Contactpersoon</th>
+                    <th>Email</th>
+                    <th>Telefoon</th>
+                    <th>BTW nummer</th>
+                    <th>Status</th>
+                    <th>Notities</th>
+                    <th class="admin-table-actions">Acties</th>
+                  </tr>
+                </thead>
+                <tbody id="companies-body">
+                  <tr>
+                    <td colspan="8" class="empty-estimate-row">Nog geen bedrijven opgeslagen.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+        </section>
+      </main>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+    <script>
+      const firebaseConfig = {
+        apiKey: "AIzaSyBQs5GmQAeuc1HGBu6ijrmJBeN0bUOgl8U",
+        authDomain: "xpertlink-calculatietool.firebaseapp.com",
+        projectId: "xpertlink-calculatietool",
+        storageBucket: "xpertlink-calculatietool.firebasestorage.app",
+        messagingSenderId: "381582276474",
+        appId: "1:381582276474:web:81d7fd850159a7c07988c3",
+      };
+
+      firebase.initializeApp(firebaseConfig);
+
+      const ADMIN_EMAIL = "rafke89@gmail.com";
+      const COMPANIES_STORAGE_KEY = "xpertlink_companies";
+
+      const elements = {
+        loginRequired: document.getElementById("login-required"),
+        accessDenied: document.getElementById("access-denied"),
+        adminDashboard: document.getElementById("admin-dashboard"),
+        adminUserEmail: document.getElementById("admin-user-email"),
+        companyName: document.getElementById("company-name"),
+        companyContact: document.getElementById("company-contact"),
+        companyEmail: document.getElementById("company-email"),
+        companyPhone: document.getElementById("company-phone"),
+        companyVat: document.getElementById("company-vat"),
+        companyStatus: document.getElementById("company-status"),
+        companyNotes: document.getElementById("company-notes"),
+        saveCompany: document.getElementById("save-company"),
+        saveFeedback: document.getElementById("save-feedback"),
+        companiesBody: document.getElementById("companies-body"),
+      };
+
+      let feedbackTimeout = null;
+
+      function setView(state, user) {
+        elements.loginRequired.classList.toggle("hidden", state !== "login-required");
+        elements.accessDenied.classList.toggle("hidden", state !== "access-denied");
+        elements.adminDashboard.classList.toggle("hidden", state !== "admin");
+        elements.adminUserEmail.textContent = user?.email || "Admin controle";
+      }
+
+      function loadCompanies() {
+        try {
+          const rawCompanies = window.localStorage.getItem(COMPANIES_STORAGE_KEY);
+          const companies = rawCompanies ? JSON.parse(rawCompanies) : [];
+          return Array.isArray(companies) ? companies : [];
+        } catch (error) {
+          console.error("Kon bedrijven niet laden.", error);
+          return [];
+        }
+      }
+
+      function saveCompanies(companies) {
+        window.localStorage.setItem(COMPANIES_STORAGE_KEY, JSON.stringify(companies));
+      }
+
+      function clearForm() {
+        elements.companyName.value = "";
+        elements.companyContact.value = "";
+        elements.companyEmail.value = "";
+        elements.companyPhone.value = "";
+        elements.companyVat.value = "";
+        elements.companyStatus.value = "actief";
+        elements.companyNotes.value = "";
+      }
+
+      function showFeedback(message) {
+        if (feedbackTimeout) {
+          window.clearTimeout(feedbackTimeout);
+        }
+
+        elements.saveFeedback.textContent = message;
+        elements.saveFeedback.classList.remove("hidden");
+        feedbackTimeout = window.setTimeout(() => {
+          elements.saveFeedback.classList.add("hidden");
+        }, 2500);
+      }
+
+      function escapeHtml(value) {
+        return String(value || "")
+          .replaceAll("&", "&amp;")
+          .replaceAll("<", "&lt;")
+          .replaceAll(">", "&gt;")
+          .replaceAll('"', "&quot;")
+          .replaceAll("'", "&#39;");
+      }
+
+      function createCompanyId() {
+        if (window.crypto && typeof window.crypto.randomUUID === "function") {
+          return window.crypto.randomUUID();
+        }
+
+        return `company_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
+      }
+
+      function renderCompanies() {
+        const companies = loadCompanies();
+        elements.companiesBody.replaceChildren();
+
+        if (companies.length === 0) {
+          const row = document.createElement("tr");
+          row.innerHTML =
+            '<td colspan="8" class="empty-estimate-row">Nog geen bedrijven opgeslagen.</td>';
+          elements.companiesBody.appendChild(row);
+          return;
+        }
+
+        companies.forEach((company) => {
+          const row = document.createElement("tr");
+          row.innerHTML = `
+            <td>${escapeHtml(company.name || "-")}</td>
+            <td>${escapeHtml(company.contact || "-")}</td>
+            <td>${escapeHtml(company.email || "-")}</td>
+            <td>${escapeHtml(company.phone || "-")}</td>
+            <td>${escapeHtml(company.vat || "-")}</td>
+            <td>${escapeHtml(company.status || "-")}</td>
+            <td>${escapeHtml(company.notes || "-")}</td>
+            <td>
+              <button class="button button-secondary delete-company" type="button" data-id="${escapeHtml(company.id)}">
+                Verwijderen
+              </button>
+            </td>
+          `;
+          elements.companiesBody.appendChild(row);
+        });
+      }
+
+      function createCompanyPayload() {
+        return {
+          id: createCompanyId(),
+          name: elements.companyName.value.trim(),
+          contact: elements.companyContact.value.trim(),
+          email: elements.companyEmail.value.trim(),
+          phone: elements.companyPhone.value.trim(),
+          vat: elements.companyVat.value.trim(),
+          status: elements.companyStatus.value,
+          notes: elements.companyNotes.value.trim(),
+        };
+      }
+
+      function handleSaveCompany() {
+        const companies = loadCompanies();
+        companies.push(createCompanyPayload());
+        saveCompanies(companies);
+        clearForm();
+        renderCompanies();
+        showFeedback("Bedrijf opgeslagen.");
+      }
+
+      function handleDeleteCompany(companyId) {
+        const companies = loadCompanies().filter((company) => company.id !== companyId);
+        saveCompanies(companies);
+        renderCompanies();
+      }
+
+      elements.saveCompany.addEventListener("click", handleSaveCompany);
+      elements.companiesBody.addEventListener("click", (event) => {
+        const target = event.target;
+        if (!(target instanceof HTMLElement)) {
+          return;
+        }
+
+        if (target.classList.contains("delete-company")) {
+          handleDeleteCompany(target.dataset.id || "");
+        }
+      });
+
+      firebase.auth().onAuthStateChanged((user) => {
+        if (!user) {
+          setView("login-required");
+          return;
+        }
+
+        if (user.email !== ADMIN_EMAIL) {
+          setView("access-denied", user);
+          return;
+        }
+
+        setView("admin", user);
+        renderCompanies();
+      });
+    </script>
+  </body>
+</html>
