@@ -49,6 +49,14 @@ const elements = {
   totalAntiRust: document.getElementById("total-anti-rust"),
   grandTotal: document.getElementById("grand-total"),
   remarks: document.getElementById("remarks"),
+  settingsCompanyName: document.getElementById("settings-company-name"),
+  settingsCompanyAddress: document.getElementById("settings-company-address"),
+  settingsCompanyVat: document.getElementById("settings-company-vat"),
+  settingsCompanyPhone: document.getElementById("settings-company-phone"),
+  settingsCompanyEmail: document.getElementById("settings-company-email"),
+  settingsCompanyLogo: document.getElementById("settings-company-logo"),
+  saveCompanySettings: document.getElementById("save-company-settings"),
+  companySettingsSuccess: document.getElementById("company-settings-success"),
   customerName: document.getElementById("customer-name"),
   customerAddress: document.getElementById("customer-address"),
   customerPhone: document.getElementById("customer-phone"),
@@ -66,8 +74,12 @@ const elements = {
   companyVat: document.getElementById("company-vat"),
   vatRate: document.getElementById("vat-rate"),
   estimateOutput: document.getElementById("estimate-output"),
+  estimateCompanyLogo: document.getElementById("estimate-company-logo"),
   estimateCompanyName: document.getElementById("estimate-company-name"),
+  estimateCompanyAddress: document.getElementById("estimate-company-address"),
   estimateCompanyVat: document.getElementById("estimate-company-vat"),
+  estimateCompanyPhone: document.getElementById("estimate-company-phone"),
+  estimateCompanyEmail: document.getElementById("estimate-company-email"),
   estimateDocumentNumber: document.getElementById("estimate-document-number"),
   estimateDocumentDate: document.getElementById("estimate-document-date"),
   estimateVatRate: document.getElementById("estimate-vat-rate"),
@@ -87,6 +99,126 @@ const elements = {
   estimateVatAmount: document.getElementById("estimate-vat-amount"),
   estimateTotalInclVat: document.getElementById("estimate-total-incl-vat"),
 };
+
+let currentUser = null;
+let companyLogoDataUrl = "";
+let companySettingsMessageTimeout = null;
+let companyLogoReadPromise = Promise.resolve();
+
+function getCompanySettingsStorageKey(userId) {
+  return `companySettings_${userId}`;
+}
+
+function hideCompanySettingsSuccess() {
+  elements.companySettingsSuccess.textContent = "";
+  elements.companySettingsSuccess.classList.add("hidden");
+}
+
+function showCompanySettingsSuccess(message) {
+  if (companySettingsMessageTimeout) {
+    window.clearTimeout(companySettingsMessageTimeout);
+  }
+
+  elements.companySettingsSuccess.textContent = message;
+  elements.companySettingsSuccess.classList.remove("hidden");
+  companySettingsMessageTimeout = window.setTimeout(() => {
+    hideCompanySettingsSuccess();
+  }, 2500);
+}
+
+function getCompanySettingsFromForm() {
+  return {
+    name: elements.settingsCompanyName.value.trim(),
+    address: elements.settingsCompanyAddress.value.trim(),
+    vat: elements.settingsCompanyVat.value.trim(),
+    phone: elements.settingsCompanyPhone.value.trim(),
+    email: elements.settingsCompanyEmail.value.trim(),
+    logo: companyLogoDataUrl,
+  };
+}
+
+function applyCompanySettingsToForm(settings = {}) {
+  elements.settingsCompanyName.value = settings.name || "";
+  elements.settingsCompanyAddress.value = settings.address || "";
+  elements.settingsCompanyVat.value = settings.vat || "";
+  elements.settingsCompanyPhone.value = settings.phone || "";
+  elements.settingsCompanyEmail.value = settings.email || "";
+  elements.settingsCompanyLogo.value = "";
+  companyLogoDataUrl = settings.logo || "";
+
+  if (settings.name) {
+    elements.companyName.value = settings.name;
+  }
+
+  if (settings.vat) {
+    elements.companyVat.value = settings.vat;
+  }
+}
+
+function resetCompanySettingsForm() {
+  applyCompanySettingsToForm();
+  hideCompanySettingsSuccess();
+}
+
+function loadCompanySettings(user) {
+  if (!user?.uid) {
+    resetCompanySettingsForm();
+    return;
+  }
+
+  const storageKey = getCompanySettingsStorageKey(user.uid);
+
+  try {
+    const rawSettings = window.localStorage.getItem(storageKey);
+    const parsedSettings = rawSettings ? JSON.parse(rawSettings) : {};
+    applyCompanySettingsToForm(parsedSettings);
+  } catch (error) {
+    console.error("Kon bedrijfsinstellingen niet laden.", error);
+    resetCompanySettingsForm();
+  }
+}
+
+async function saveCompanySettings() {
+  if (!currentUser?.uid) {
+    showAuthError("Log eerst in om bedrijfsinstellingen op te slaan.");
+    return;
+  }
+
+  try {
+    await companyLogoReadPromise;
+    const settings = getCompanySettingsFromForm();
+    window.localStorage.setItem(
+      getCompanySettingsStorageKey(currentUser.uid),
+      JSON.stringify(settings)
+    );
+    applyCompanySettingsToForm(settings);
+    showCompanySettingsSuccess("Bedrijfsgegevens opgeslagen.");
+  } catch (error) {
+    showAuthError("Opslaan van bedrijfsinstellingen mislukt.");
+    console.error("Kon bedrijfsinstellingen niet opslaan.", error);
+  }
+}
+
+function handleCompanyLogoUpload(file) {
+  if (!file) {
+    companyLogoDataUrl = "";
+    companyLogoReadPromise = Promise.resolve();
+    return;
+  }
+
+  const reader = new FileReader();
+  companyLogoReadPromise = new Promise((resolve, reject) => {
+    reader.onload = () => {
+      companyLogoDataUrl = typeof reader.result === "string" ? reader.result : "";
+      resolve(companyLogoDataUrl);
+    };
+    reader.onerror = () => {
+      showAuthError("Logo uploaden mislukt.");
+      reject(new Error("Logo uploaden mislukt."));
+    };
+  });
+  reader.readAsDataURL(file);
+}
 
 function showAuthError(message) {
   elements.authError.textContent = message;
@@ -138,17 +270,21 @@ function setupAuth() {
     handleAuthAction(() => auth.signInWithEmailAndPassword(email, password));
   });
 
-  elements.registerButton.addEventListener("click", () => {
-    const email = elements.authEmail.value.trim();
-    const password = elements.authPassword.value;
+  if (elements.registerButton) {
+    elements.registerButton.addEventListener("click", () => {
+      const email = elements.authEmail.value.trim();
+      const password = elements.authPassword.value;
 
-    handleAuthAction(() => auth.createUserWithEmailAndPassword(email, password));
-  });
+      handleAuthAction(() => auth.createUserWithEmailAndPassword(email, password));
+    });
+  }
 
-  elements.googleLoginButton.addEventListener("click", () => {
-    const provider = new firebase.auth.GoogleAuthProvider();
-    handleAuthAction(() => auth.signInWithPopup(provider));
-  });
+  if (elements.googleLoginButton) {
+    elements.googleLoginButton.addEventListener("click", () => {
+      const provider = new firebase.auth.GoogleAuthProvider();
+      handleAuthAction(() => auth.signInWithPopup(provider));
+    });
+  }
 
   elements.logoutButton.addEventListener("click", () => {
     handleAuthAction(() => auth.signOut());
@@ -156,7 +292,9 @@ function setupAuth() {
 
   auth.onAuthStateChanged((user) => {
     clearAuthError();
+    currentUser = user || null;
     setAuthMode(Boolean(user), user);
+    loadCompanySettings(user);
   });
 }
 
@@ -324,12 +462,28 @@ function calculate() {
 function generateEstimate() {
   const snapshot = getCalculationSnapshot();
   const fragment = document.createDocumentFragment();
+  const companySettings = getCompanySettingsFromForm();
 
-  elements.estimateCompanyName.textContent = formatText(elements.companyName.value);
-  elements.estimateCompanyVat.textContent = `BTW: ${formatText(elements.companyVat.value)}`;
+  elements.estimateCompanyName.textContent = formatText(
+    companySettings.name || elements.companyName.value
+  );
+  elements.estimateCompanyAddress.textContent = formatText(companySettings.address, "");
+  elements.estimateCompanyVat.textContent = `BTW: ${formatText(
+    companySettings.vat || elements.companyVat.value
+  )}`;
+  elements.estimateCompanyPhone.textContent = `Tel: ${formatText(companySettings.phone, "")}`;
+  elements.estimateCompanyEmail.textContent = `Email: ${formatText(companySettings.email, "")}`;
   elements.estimateDocumentNumber.textContent = formatText(elements.documentNumber.value);
   elements.estimateDocumentDate.textContent = formatDate(elements.documentDate.value);
   elements.estimateVatRate.textContent = `${toNumber(elements.vatRate.value).toFixed(2)}%`;
+
+  if (companySettings.logo) {
+    elements.estimateCompanyLogo.src = companySettings.logo;
+    elements.estimateCompanyLogo.classList.remove("hidden");
+  } else {
+    elements.estimateCompanyLogo.removeAttribute("src");
+    elements.estimateCompanyLogo.classList.add("hidden");
+  }
 
   elements.estimateCustomerName.textContent = formatText(elements.customerName.value);
   elements.estimateCustomerAddress.textContent = formatText(elements.customerAddress.value);
@@ -472,6 +626,20 @@ function buildPrintDocument() {
         border-bottom: 1px solid var(--border);
       }
 
+      .estimate-branding {
+        display: grid;
+        gap: 4px;
+      }
+
+      .estimate-company-logo {
+        display: block;
+        max-width: 180px;
+        width: auto;
+        height: auto;
+        margin-bottom: 10px;
+        object-fit: contain;
+      }
+
       .estimate-label {
         margin: 0 0 8px;
         color: var(--blue);
@@ -590,7 +758,7 @@ function buildPrintDocument() {
       }
 
       .hidden {
-        display: block !important;
+        display: none !important;
       }
     </style>
   </head>
@@ -603,6 +771,14 @@ function buildPrintDocument() {
   </body>
 </html>`;
 }
+
+elements.saveCompanySettings.addEventListener("click", saveCompanySettings);
+elements.settingsCompanyLogo.addEventListener("change", (event) => {
+  const target = event.target;
+  if (target instanceof HTMLInputElement) {
+    handleCompanyLogoUpload(target.files?.[0] || null);
+  }
+});
 
 elements.addLine.addEventListener("click", () => {
   createLine();

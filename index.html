@@ -33,12 +33,6 @@
             </label>
             <div class="auth-actions">
               <button id="login-button" class="button button-primary" type="button">Login</button>
-              <button id="register-button" class="button button-secondary" type="button">
-                Registreer
-              </button>
-              <button id="google-login-button" class="button button-secondary" type="button">
-                Login met Google
-              </button>
             </div>
             <p id="auth-status" class="auth-status">Niet ingelogd.</p>
             <p id="auth-error" class="auth-error hidden" role="alert"></p>
@@ -165,6 +159,46 @@
             <span>Opmerkingen</span>
             <textarea id="remarks" rows="4"></textarea>
           </label>
+        </section>
+
+        <section class="panel company-settings-panel">
+          <div class="section-title-row">
+            <h2>Bedrijfsinstellingen</h2>
+          </div>
+          <div class="company-settings-grid">
+            <label class="field">
+              <span>Bedrijfsnaam</span>
+              <input id="settings-company-name" type="text" />
+            </label>
+            <label class="field">
+              <span>Adres</span>
+              <input id="settings-company-address" type="text" />
+            </label>
+            <label class="field">
+              <span>BTW nummer</span>
+              <input id="settings-company-vat" type="text" />
+            </label>
+            <label class="field">
+              <span>Telefoon</span>
+              <input id="settings-company-phone" type="text" />
+            </label>
+            <label class="field">
+              <span>Email</span>
+              <input id="settings-company-email" type="email" />
+            </label>
+            <label class="field">
+              <span>Logo upload</span>
+              <input id="settings-company-logo" type="file" accept="image/*" />
+            </label>
+          </div>
+          <div class="company-settings-actions">
+            <button id="save-company-settings" class="button button-primary" type="button">
+              Bedrijfsgegevens opslaan
+            </button>
+            <p id="company-settings-success" class="company-settings-success hidden">
+              Bedrijfsgegevens opgeslagen.
+            </p>
+          </div>
         </section>
 
         <section class="panel">
@@ -354,10 +388,14 @@
           </div>
           <div class="estimate-sheet">
             <div class="estimate-header">
-              <div>
+              <div class="estimate-branding">
+                <img id="estimate-company-logo" class="estimate-company-logo hidden" alt="Bedrijfslogo" />
                 <p class="estimate-label">Offerte</p>
                 <h3 id="estimate-company-name">-</h3>
+                <p id="estimate-company-address" class="estimate-meta-line">-</p>
                 <p id="estimate-company-vat" class="estimate-meta-line">-</p>
+                <p id="estimate-company-phone" class="estimate-meta-line">-</p>
+                <p id="estimate-company-email" class="estimate-meta-line">-</p>
               </div>
               <div class="estimate-docbox">
                 <div>
