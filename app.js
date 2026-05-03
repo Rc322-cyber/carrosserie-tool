@@ -10,6 +10,8 @@ const GENERATED_RATES = {
 };
 
 const COMPANIES_STORAGE_KEY = "xpertlink_companies";
+const VEHICLE_DOCUMENT_FUNCTION_URL =
+  "https://vehicledocumentplaceholder-u2m6bykdhq-uc.a.run.app";
 
 const elements = {
   authPanel: document.getElementById("auth-panel"),
@@ -121,6 +123,23 @@ let companyLogoReadPromise = Promise.resolve();
 let linkedCompanyProfile = null;
 let activeGeneratedRates = { ...GENERATED_RATES };
 let aiRegistrationPreviewUrls = [];
+
+function fileToBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+
+    reader.onload = () => {
+      const result = typeof reader.result === "string" ? reader.result : "";
+      resolve(result.includes(",") ? result.split(",")[1] : result);
+    };
+
+    reader.onerror = () => {
+      reject(new Error("Afbeelding lezen mislukt."));
+    };
+
+    reader.readAsDataURL(file);
+  });
+}
 
 function getCompanySettingsStorageKey(userId) {
   return `companySettings_${userId}`;
@@ -412,17 +431,52 @@ function handleAiRegistrationImageUpload(files) {
   elements.aiRegistrationPreviewWrap.classList.remove("hidden");
 }
 
-function handleAiReadVehicleData() {
+function applyAiVehicleData(data = {}) {
+  elements.vehiclePlate.value = data.licensePlate || "";
+  elements.vehicleChassis.value = data.vin || "";
+  elements.customerName.value = data.owner || "";
+  elements.vehicleBrand.value = data.brand || "";
+  elements.vehicleModel.value = data.model || "";
+}
+
+async function handleAiReadVehicleData() {
   const selectedImages = Array.from(elements.aiRegistrationImage.files || []);
   elements.aiRegistrationLoading.classList.add("hidden");
+  elements.aiRegistrationStatus.textContent = "";
 
   if (selectedImages.length === 0) {
     elements.aiRegistrationStatus.textContent = "Upload eerst foto’s.";
     return;
   }
 
-  elements.aiRegistrationStatus.textContent =
-    "AI-koppeling nog niet actief. Volgende stap: Firebase Cloud Function.";
+  elements.aiReadVehicleData.disabled = true;
+  elements.aiRegistrationLoading.classList.remove("hidden");
+
+  try {
+    const imageBase64 = await fileToBase64(selectedImages[0]);
+    const response = await fetch(VEHICLE_DOCUMENT_FUNCTION_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({imageBase64}),
+    });
+
+    if (!response.ok) {
+      throw new Error("AI uitlezen mislukt.");
+    }
+
+    const data = await response.json();
+    applyAiVehicleData(data);
+    elements.aiRegistrationStatus.textContent = "Gegevens uitgelezen.";
+  } catch (error) {
+    console.error("AI voertuiggegevens uitlezen mislukt.", error);
+    elements.aiRegistrationStatus.textContent =
+      "AI uitlezen mislukt. Probeer opnieuw of vul de gegevens manueel in.";
+  } finally {
+    elements.aiRegistrationLoading.classList.add("hidden");
+    elements.aiReadVehicleData.disabled = false;
+  }
 }
 
 function showAuthError(message) {
