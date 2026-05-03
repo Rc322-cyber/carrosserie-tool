@@ -75,6 +75,12 @@ const elements = {
   vehicleChassis: document.getElementById("vehicle-chassis"),
   vehicleRegistrationDate: document.getElementById("vehicle-registration-date"),
   vehicleMileage: document.getElementById("vehicle-mileage"),
+  aiRegistrationImage: document.getElementById("ai-registration-image"),
+  aiReadVehicleData: document.getElementById("ai-read-vehicle-data"),
+  aiRegistrationPreviewWrap: document.getElementById("ai-registration-preview-wrap"),
+  aiRegistrationPreview: document.getElementById("ai-registration-preview"),
+  aiRegistrationLoading: document.getElementById("ai-registration-loading"),
+  aiRegistrationStatus: document.getElementById("ai-registration-status"),
   documentNumber: document.getElementById("document-number"),
   documentDate: document.getElementById("document-date"),
   companyName: document.getElementById("company-name"),
@@ -115,6 +121,7 @@ let companySettingsMessageTimeout = null;
 let companyLogoReadPromise = Promise.resolve();
 let linkedCompanyProfile = null;
 let activeGeneratedRates = { ...GENERATED_RATES };
+let aiRegistrationPreviewUrl = "";
 
 function getCompanySettingsStorageKey(userId) {
   return `companySettings_${userId}`;
@@ -363,6 +370,43 @@ function handleCompanyLogoUpload(file) {
     };
   });
   reader.readAsDataURL(file);
+}
+
+function clearAiRegistrationPreview() {
+  if (aiRegistrationPreviewUrl) {
+    URL.revokeObjectURL(aiRegistrationPreviewUrl);
+    aiRegistrationPreviewUrl = "";
+  }
+
+  elements.aiRegistrationPreview.removeAttribute("src");
+  elements.aiRegistrationPreviewWrap.classList.add("hidden");
+}
+
+function handleAiRegistrationImageUpload(file) {
+  elements.aiRegistrationStatus.textContent = "";
+  elements.aiRegistrationLoading.classList.add("hidden");
+  clearAiRegistrationPreview();
+
+  if (!file) {
+    return;
+  }
+
+  aiRegistrationPreviewUrl = URL.createObjectURL(file);
+  elements.aiRegistrationPreview.src = aiRegistrationPreviewUrl;
+  elements.aiRegistrationPreviewWrap.classList.remove("hidden");
+}
+
+function handleAiReadVehicleData() {
+  const selectedImage = elements.aiRegistrationImage.files?.[0] || null;
+  elements.aiRegistrationLoading.classList.add("hidden");
+
+  if (!selectedImage) {
+    elements.aiRegistrationStatus.textContent = "Upload eerst een foto.";
+    return;
+  }
+
+  elements.aiRegistrationStatus.textContent =
+    "AI-koppeling nog niet actief. Volgende stap: Firebase Cloud Function.";
 }
 
 function showAuthError(message) {
@@ -968,6 +1012,13 @@ elements.settingsCompanyLogo.addEventListener("change", (event) => {
     handleCompanyLogoUpload(target.files?.[0] || null);
   }
 });
+elements.aiRegistrationImage.addEventListener("change", (event) => {
+  const target = event.target;
+  if (target instanceof HTMLInputElement) {
+    handleAiRegistrationImageUpload(target.files?.[0] || null);
+  }
+});
+elements.aiReadVehicleData.addEventListener("click", handleAiReadVehicleData);
 
 elements.addLine.addEventListener("click", () => {
   createLine();

@@ -170,6 +170,28 @@
           </div>
         </section>
 
+        <section class="panel ai-vehicle-panel">
+          <div class="section-title-row">
+            <h2>AI voertuiggegevens uitlezen</h2>
+          </div>
+          <div class="ai-vehicle-upload">
+            <label class="field">
+              <span>Foto inschrijvingsbewijs</span>
+              <input id="ai-registration-image" type="file" accept="image/*" />
+            </label>
+            <button id="ai-read-vehicle-data" class="button button-primary" type="button">
+              Gegevens uitlezen
+            </button>
+          </div>
+          <div id="ai-registration-preview-wrap" class="ai-registration-preview-wrap hidden">
+            <img id="ai-registration-preview" class="ai-registration-preview" alt="Preview inschrijvingsbewijs" />
+          </div>
+          <p id="ai-registration-loading" class="ai-registration-loading hidden">
+            AI leest gegevens...
+          </p>
+          <p id="ai-registration-status" class="ai-registration-status" role="status"></p>
+        </section>
+
         <section class="panel">
           <div class="section-title-row">
             <h2>Opmerkingen</h2>
